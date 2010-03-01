@@ -1,0 +1,4 @@
+database/database.conf
+database/*/database.conf
+database/*/database-data-dump.sql
+./multimatch/web-export/lib/anewt
