@@ -4,7 +4,7 @@ anewt_include('form');
 
 class FormChoiceAutoSubmit extends AnewtFormControlChoice {
     function FormChoiceAutoSubmit($name) {
-        parent::AnewtFormControlChoice($name);
+        parent::__construct($name);
     }
 
     function build_widget() {
@@ -315,7 +315,7 @@ class Table {
 
         $db = DB::get_instance();
         $rows = $db->prepare_execute_fetch_all($q);
-        
+
         $more_results = false;
         if (count($rows) == $this->limit+1) {
             $more_results = true;

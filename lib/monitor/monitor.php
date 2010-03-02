@@ -78,7 +78,7 @@ class SsscrapeMonitor extends AnewtPage
 
     function SsscrapeMonitor()
     {
-        AnewtPage::AnewtPage();
+        AnewtPage::__construct();
  
         /* Provide a list of blocks */
         $this->set('blocks', array('header', 'content', 'footer'));
