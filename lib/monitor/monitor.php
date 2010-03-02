@@ -10,6 +10,7 @@ require('feeds.php');
 require('feed_items.php');
 require('feed_item_comments.php');
 require('feed_item_comment_counts.php');
+require('enclosures.php');
 require('tasks.php');
 require('jobs.php');
 require('job_logs.php');
@@ -48,6 +49,11 @@ class SsscrapeMonitor extends AnewtPage
             'descr'=>'Basic statistics for comments',
             'tab'=>False,
             'parent'=>'comments'
+        ),
+        array(
+            'name'=>'enclosures',
+            'class'=>'EnclosuresTable',
+            'descr'=>'Information about enclosures'
         ),
         array(
             'name'=>'tasks',
