@@ -2,6 +2,7 @@ __doc__ = '''Twones specific content saver plugin'''
 
 import feedworker
 import feedworker.urn
+import beanstalkc
 
 class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
     def _hasEnclosure(self, id):
@@ -20,3 +21,15 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
         # if the enclosure is saved successfully and if it has no enclosures already
         if enclosure.has_key("id") and not self._hasEnclosure(enclosure['id']):
             transaction.execute("""INSERT INTO twones_enclosure (enclosure_id, sent) VALUES(%s, NOW())""", (enclosure['id'], ))
+            # print enclosure['link']
+            self.beanstalk.put(str(enclosure['link']))
+
+    def pre_store(self):
+        # print "Initiating beanstalk connection ..."
+        self.beanstalk = beanstalkc.Connection()
+        self.beanstalk.use('tracks')
+
+    def post_store(self):
+        # print "Destroying beanstalk connection ..."
+        self.beanstalk.close()
+        feedworker.FullContent.FullContentPlugin.post_store(self)

@@ -124,6 +124,11 @@ class FeedWorkerRunner:
             for item in self.filteredItems:
                 self.plugin.store(self.feed, item)
 
+    def pre_store(self):
+        if hasattr(self.plugin, 'pre_store'):
+            self.plugin.pre_store()
+    # end def pre_store
+    
     def store(self):
         if hasattr(self.plugin, 'storefeed'):
             self.plugin.storefeed(self.feed)
