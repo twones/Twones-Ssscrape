@@ -1,0 +1,1 @@
+from twones.TwonesFullContent import TwonesFullContentPlugin
