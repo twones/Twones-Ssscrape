@@ -3,6 +3,7 @@ __doc__ = '''Twones specific content saver plugin'''
 import feedworker
 import feedworker.urn
 import beanstalkc
+import anyjson
 
 class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
     def _hasEnclosure(self, id):
@@ -22,7 +23,31 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
         if enclosure.has_key("id") and not self._hasEnclosure(enclosure['id']):
             transaction.execute("""INSERT INTO twones_enclosure (enclosure_id, sent) VALUES(%s, NOW())""", (enclosure['id'], ))
             # print enclosure['link']
-            self.beanstalk.put(str(enclosure['link']))
+            if item.has_key('title'):
+                item_title = item['title']
+            else:
+                item_title = None
+            # Find URL associated with this item
+            url = None 
+            if item.has_key('links'):
+                for link in item['links'].itervalues():
+                    if link.has_key('relation') and link['relation'] == 'alternate' and link.has_key('link'):
+                        url = link['link']
+                        break            
+            # Find URL associated with this item
+            service_url = None 
+            if collection.has_key('links'):
+                for link in collection['links'].itervalues():
+                    if link.has_key('relation') and link['relation'] == 'alternate' and link.has_key('link'):
+                        service_url = link['link']
+                        break            
+            json_obj = anyjson.serialize({
+              'link': enclosure['link'],
+              'web_link': url,
+              'service_link': service_url,
+              'page_title': item_title
+            })
+            self.beanstalk.put(json_obj)
 
     def pre_store(self):
         # print "Initiating beanstalk connection ..."
