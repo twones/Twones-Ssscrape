@@ -44,8 +44,9 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
             json_obj = anyjson.serialize({
               'link': enclosure['link'],
               'web_link': url,
-              'service_link': service_url,
-              'page_title': item_title
+              'service_url': service_url,
+              'post_title': item_title,
+              'player': 'mp3'
             })
             self.beanstalk.put(json_obj)
 
