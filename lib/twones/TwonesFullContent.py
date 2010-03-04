@@ -30,10 +30,15 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
             # Find URL associated with this item
             url = None 
             if item.has_key('links'):
-                for link in item['links'].itervalues():
-                    if link.has_key('relation') and link['relation'] == 'alternate' and link.has_key('link'):
-                        url = link['link']
-                        break            
+                for relation in ['feedburner_origlink', 'alternate']:
+                    if url is not None:
+                        break
+                    for link in item['links'].itervalues():
+                        #print link
+                        if link.has_key('relation') and link['relation'] == relation and link.has_key('link'):
+                            url = link['link']
+                            break
+            # print url            
             # Find URL associated with this item
             service_url = None 
             if collection.has_key('links'):
