@@ -56,8 +56,7 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
               'link': enclosure['link'],
               'web_link': url,
               'service_url': service_url,
-              'post_title': item_title,
-              'player': 'mp3'
+              'post_title': item_title
             })
             self.beanstalk.put(json_obj)
 
