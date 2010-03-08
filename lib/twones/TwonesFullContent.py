@@ -1,5 +1,7 @@
 __doc__ = '''Twones specific content saver plugin'''
 
+import re
+
 import feedworker
 import feedworker.urn
 import beanstalkc
@@ -19,6 +21,10 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
         # call the method of the duper class 
         feedworker.FullContent.FullContentPlugin._saveEnclosure(self, transaction, collection, item, enclosure)
 
+        # check for mp3 links
+        if not re.search('\.mp3$', enclosure['link']):
+            return
+        
         # if the enclosure is saved successfully and if it has no enclosures already
         if enclosure.has_key("id") and not self._hasEnclosure(enclosure['id']):
             transaction.execute("""INSERT INTO twones_enclosure (enclosure_id, sent) VALUES(%s, NOW())""", (enclosure['id'], ))
