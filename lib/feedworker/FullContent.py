@@ -2,7 +2,7 @@
 
 __doc__ = '''Full content parser for the collection worker for scrape.'''
 
-import os, sys
+import os, sys, re
 
 import ssscrapeapi
 import feedworker
@@ -594,6 +594,14 @@ class FullContentPlugin(feedworker.CommonPlugins.FeedPlugin):
             item['enclosures'] = entry.enclosures
         except AttributeError:
             item['enclosures'] = []
+        # fix for stupid feedburner shit
+        if entry.has_key('feedburner_origenclosurelink'):
+            for enclosure in item['enclosures']:
+                #print enclosure['href']
+                if re.search(r'feedproxy\.google\.com', enclosure['href']):
+                    #print "-->", entry['feedburner_origenclosurelink']
+                    enclosure['href'] = entry['feedburner_origenclosurelink']
+        
         # end try
         # language (tricky, rss feeds don't have a way to specify language in *items*)
         # Also, not sure if this is the correct place to do it
