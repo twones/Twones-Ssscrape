@@ -57,7 +57,7 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
               'web_link': url,
               'service_url': service_url,
               'post_title': item_title,
-              'pub_date': item['pub_date']
+              'created': item['pub_date']
             })
             self.beanstalk.put(json_obj)
 
