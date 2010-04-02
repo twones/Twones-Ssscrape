@@ -1,5 +1,6 @@
 __doc__ = '''Twones specific content saver plugin'''
 
+import os
 import re
 
 import feedworker
@@ -63,7 +64,23 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
 
     def pre_store(self):
         # print "Initiating beanstalk connection ..."
-        self.beanstalk = beanstalkc.Connection()
+        configs = {
+          'development': {
+            'host': 'localhost',
+            'port': 11300
+          },
+          'preproduction': {
+            'host': 'localhost',
+            'port': 11300
+          },
+          'production': {
+            'host': 'sf01-int.twones.com',
+            'port': 11300
+          },
+        }
+        environment = os.getenv('CAKEPHP_ENV')
+        # print environment, configs[environment]['host'], configs[environment]['port']
+        self.beanstalk = beanstalkc.Connection(host=configs[environment]['host'], port=configs[environment]['port'])
         self.beanstalk.use('tracks')
 
     def post_store(self):
