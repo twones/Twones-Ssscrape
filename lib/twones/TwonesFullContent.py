@@ -3,6 +3,8 @@ __doc__ = '''Twones specific content saver plugin'''
 import os
 import re
 
+import ssscrapeapi
+
 import feedworker
 import feedworker.urn
 import beanstalkc
@@ -78,8 +80,8 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
             'port': 11300
           },
         }
-        environment = os.getenv('CAKEPHP_ENV')
-        # print environment, configs[environment]['host'], configs[environment]['port']
+        environment = ssscrapeapi.config.get_string('twones', 'environment', 'production') #os.getenv('CAKEPHP_ENV')
+        print environment, configs[environment]['host'], configs[environment]['port']
         self.beanstalk = beanstalkc.Connection(host=configs[environment]['host'], port=configs[environment]['port'])
         self.beanstalk.use('tracks')
 
