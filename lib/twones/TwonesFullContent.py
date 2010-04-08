@@ -32,12 +32,12 @@ def getBeanstalkInstance(tube='tracks'):
     beanstalk.use(tube)
     return beanstalk
 
-def sendScrapedLink(link, url, service_url, post_title, created, beanstalk):
+def sendScrapedLink(link, url, service_url, anchor_text, created, beanstalk):
     json_obj = anyjson.serialize({
       'link': link,
       'web_link': url,
       'service_url': service_url,
-      'post_title': post_title,
+      'anchor_text': anchor_text,
       'created': created
     })
     beanstalk.put(json_obj)
@@ -118,7 +118,7 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
                     if link.has_key('relation') and link['relation'] == 'alternate' and link.has_key('link'):
                         service_url = link['link']
                         break     
-            sendScrapedLink(enclosure['link'], url, service_url, item_title, item['pub_date'], self.beanstalk)
+            sendScrapedLink(enclosure['link'], url, service_url, None, item['pub_date'], self.beanstalk)
 
     def pre_store(self):
         self.beanstalk = getBeanstalkInstance()
