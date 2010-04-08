@@ -10,6 +10,28 @@ import feedworker.urn
 import beanstalkc
 import anyjson
 
+def getBeanstalkInstance(tube='tracks'):
+    print "Initiating beanstalk connection ..."
+    configs = {
+      'development': {
+        'host': 'localhost',
+        'port': 11300
+      },
+      'preproduction': {
+        'host': 'localhost',
+        'port': 11300
+      },
+      'production': {
+        'host': 'sf01-int.twones.com',
+        'port': 11300
+      },
+    }
+    environment = ssscrapeapi.config.get_string('twones', 'environment', 'production') #os.getenv('CAKEPHP_ENV')
+    #print environment, configs[environment]['host'], configs[environment]['port']
+    beanstalk = beanstalkc.Connection(host=configs[environment]['host'], port=configs[environment]['port'])
+    beanstalk.use(tube)
+    return beanstalk
+
 class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
     def _hasEnclosure(self, id):
         '''Checks if the given enclosure was sent to Twones.'''
@@ -65,25 +87,7 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
             self.beanstalk.put(json_obj)
 
     def pre_store(self):
-        # print "Initiating beanstalk connection ..."
-        configs = {
-          'development': {
-            'host': 'localhost',
-            'port': 11300
-          },
-          'preproduction': {
-            'host': 'localhost',
-            'port': 11300
-          },
-          'production': {
-            'host': 'sf01-int.twones.com',
-            'port': 11300
-          },
-        }
-        environment = ssscrapeapi.config.get_string('twones', 'environment', 'production') #os.getenv('CAKEPHP_ENV')
-        print environment, configs[environment]['host'], configs[environment]['port']
-        self.beanstalk = beanstalkc.Connection(host=configs[environment]['host'], port=configs[environment]['port'])
-        self.beanstalk.use('tracks')
+        self.beanstalk = getBeanstalkInstance()
 
     def post_store(self):
         # print "Destroying beanstalk connection ..."
