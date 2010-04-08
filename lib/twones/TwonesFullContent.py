@@ -11,7 +11,7 @@ import beanstalkc
 import anyjson
 
 def getBeanstalkInstance(tube='tracks'):
-    print "Initiating beanstalk connection ..."
+    # print "Initiating beanstalk connection ..."
     configs = {
       'development': {
         'host': 'localhost',
@@ -27,10 +27,51 @@ def getBeanstalkInstance(tube='tracks'):
       },
     }
     environment = ssscrapeapi.config.get_string('twones', 'environment', 'production') #os.getenv('CAKEPHP_ENV')
-    #print environment, configs[environment]['host'], configs[environment]['port']
+    # print environment, configs[environment]['host'], configs[environment]['port']
     beanstalk = beanstalkc.Connection(host=configs[environment]['host'], port=configs[environment]['port'])
     beanstalk.use(tube)
     return beanstalk
+
+def sendScrapedLink(link, url, service_url, post_title, created, beanstalk):
+    json_obj = anyjson.serialize({
+      'link': link,
+      'web_link': url,
+      'service_url': service_url,
+      'post_title': post_title,
+      'created': created
+    })
+    beanstalk.put(json_obj)
+
+class TwonesPermalinkParser(feedworker.PermalinkScraper):
+  def scrape(self, collection):
+      # intantiate beanstalk connection
+      beanstalk = getBeanstalkInstance()
+      
+      # load info about feed item
+      item = self.instantiate('feed_item')
+      item.load(self.feed_item_id)
+      
+      # find the feed url
+      feed_link = self.instantiate('feed_link', feed_id=item['feed_id'], relation="alternate", type="text/html")
+      feed_link.find()
+      if feed_link.has_key('id'):
+          feed_link.load(feed_link['id'])
+          service_url = feed_link['link']
+      else:
+          service_url = self.feedUrl
+          
+      # find all links that end in .mp3
+      links = self.soup.findAll('a', href=re.compile('\.mp3$'))
+      for link in links:
+          post_title = ''.join(link.findAll(text=True))
+          link =  link['href']
+          # print link, self.feedUrl, service_url, post_title.encode('ascii', 'ignore'), str(item['pub_date'])
+          sendScrapedLink(link, self.feedUrl, service_url, post_title, str(item['pub_date']), beanstalk)
+      
+      # close beanstalk connection
+      beanstalk.close()
+      
+      collection['items'] = []
 
 class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
     def _hasEnclosure(self, id):
@@ -76,15 +117,8 @@ class TwonesFullContentPlugin(feedworker.FullContent.FullContentPlugin):
                 for link in collection['links'].itervalues():
                     if link.has_key('relation') and link['relation'] == 'alternate' and link.has_key('link'):
                         service_url = link['link']
-                        break            
-            json_obj = anyjson.serialize({
-              'link': enclosure['link'],
-              'web_link': url,
-              'service_url': service_url,
-              'post_title': item_title,
-              'created': item['pub_date']
-            })
-            self.beanstalk.put(json_obj)
+                        break     
+            sendScrapedLink(enclosure['link'], url, service_url, item_title, item['pub_date'], self.beanstalk)
 
     def pre_store(self):
         self.beanstalk = getBeanstalkInstance()
