@@ -63,10 +63,10 @@ class TwonesPermalinkParser(feedworker.PermalinkScraper):
       # find all links that end in .mp3
       links = self.soup.findAll('a', href=re.compile('\.mp3$'))
       for link in links:
-          post_title = ''.join(link.findAll(text=True))
+          anchor_text = ''.join(link.findAll(text=True))
           link =  link['href']
           # print link, self.feedUrl, service_url, post_title.encode('ascii', 'ignore'), str(item['pub_date'])
-          sendScrapedLink(link, self.feedUrl, service_url, post_title, str(item['pub_date']), beanstalk)
+          sendScrapedLink(link, self.feedUrl, service_url, anchor_text, str(item['pub_date']), beanstalk)
       
       # close beanstalk connection
       beanstalk.close()
